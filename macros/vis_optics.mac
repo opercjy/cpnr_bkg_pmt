@@ -3,6 +3,13 @@
 /run/verbose 0
 /vis/verbose 0
 
+# 광학 디버깅용 격리 파일명 설정
+/analysis/setFileName vis_optics_debug.root
+
+# 기하 구조 및 물리 리스트 메모리 할당 (필수)
+/run/initialize
+
+# Qt/OpenGL 드라이버 초기화
 /vis/open OGL 800x800-0+0
 /vis/viewer/set/autoRefresh false
 /vis/viewer/set/upVector 0 0 1
@@ -13,10 +20,11 @@
 /vis/viewer/set/style wireframe
 /vis/viewer/set/hiddenMarker false
 
+# 궤적 그리기 설정
 /vis/scene/add/trajectories smooth
 /vis/scene/endOfEventAction accumulate
 
-# ★ 아키텍트 개입: 광자 거동 식별을 위한 색상 매핑 아키텍처
+# 광자 거동 식별을 위한 색상 매핑 아키텍처
 /vis/modeling/trajectories/create/drawByParticleID
 /vis/modeling/trajectories/drawByParticleID-0/set opticalphoton cyan
 /vis/modeling/trajectories/drawByParticleID-0/set gamma green
@@ -25,6 +33,3 @@
 
 /vis/scene/add/axes 0 0 0 10 cm
 /vis/viewer/set/autoRefresh true
-
-# [시스템 경고] 광자 렌더링은 막대한 GUI 부하를 발생시킵니다.
-# 대화형 프롬프트(Session)에서 /run/beamOn 1 ~ 5 이상 실행을 엄격히 금지합니다.
