@@ -1,0 +1,60 @@
+# macros/u238_chain.mac
+# ==============================================================================
+# RI_Decay: U-238 Decay Chain (Hybrid Mode)
+# ==============================================================================
+/control/verbose 0
+/run/verbose 0
+
+/process/optical/processActivation Scintillation false
+/process/optical/processActivation Cerenkov false
+
+/run/initialize
+
+# 공통 공간 변수 설정
+/control/alias type Volume
+/control/alias shape Cylinder
+/control/alias radius 1.0 m
+/control/alias halfz 1.0 m
+/control/alias confine World
+/control/alias ang iso
+
+# 1. Bi-214 (주요 고에너지 감마 선원)
+/gps/source/intensity 1.0
+/gps/particle ion
+/gps/ion 83 214 0 0
+/gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/pos/confine {confine}
+/gps/ang/type {ang}
+
+# 2. Pb-214 (저에너지 영역 기여)
+/gps/source/add 1.0
+/gps/particle ion
+/gps/ion 82 214 0 0
+/gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/pos/confine {confine}
+/gps/ang/type {ang}
+
+# 3. Pa-234m (1.001 MeV 기여)
+/gps/source/add 1.0
+/gps/particle ion
+/gps/ion 91 234 0 0 
+/gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/pos/confine {confine}
+/gps/ang/type {ang}
+
+# I/O 파이프라인 설정
+/run/printProgress 1000000
+/analysis/setFileName u238_chain_10M.root
+/run/beamOn 10000000
