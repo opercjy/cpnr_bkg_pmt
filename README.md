@@ -4,6 +4,9 @@
 [![ROOT](https://img.shields.io/badge/ROOT-v6.3x-blue.svg)](https://root.cern/)
 [![OS](https://img.shields.io/badge/OS-Rocky%20Linux%209-green.svg)](https://rockylinux.org/)
 
+<img width="1320" height="1020" alt="image" src="https://github.com/user-attachments/assets/9e4d6a01-ad51-4593-aca4-1a026bfdf9e9" />
+<img width="1320" height="1020" alt="image" src="https://github.com/user-attachments/assets/94bcb0ae-0264-4caa-8c3d-fca7353f742d" />
+
 ## 1. Overview & Design Philosophy (개요 및 설계 철학)
 본 프로젝트는 **Geant4**와 **CERN ROOT**를 기반으로 구축된 몬테카를로 전산모사 툴킷입니다. 초저방사능(Ultra-low Background) 실험을 위한 환경 방사능 기여도를 평가하며, 성능의 한계를 극복하기 위해 아래와 같은 핵심 아키텍처가 적용되었습니다.
 
