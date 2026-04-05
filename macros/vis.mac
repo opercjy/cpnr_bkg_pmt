@@ -3,7 +3,13 @@
 /run/verbose 0
 /vis/verbose 0
 
-# Qt/OpenGL 드라이버 초기화 (Geant4 11.x 표준)
+# 대화형 프롬프트 데이터 격리 (프로덕션 파일 덮어쓰기 방지)
+/analysis/setFileName vis_debug.root
+
+# 기하 구조 및 물리 리스트 메모리 할당 (필수)
+/run/initialize
+
+# Qt/OpenGL 드라이버 초기화
 /vis/open OGL 600x600-0+0
 
 # 기하학적 뷰어 설정
@@ -20,7 +26,7 @@
 /vis/scene/add/trajectories smooth
 /vis/scene/endOfEventAction accumulate
 
-# ★ 아키텍트 개입: GUI OOM 방지용 입자 필터 적용 (광자 렌더링 원천 차단)
+# GUI OOM 방지용 입자 필터 적용 (광자 렌더링 원천 차단)
 /vis/filtering/trajectories/create/particleFilter
 /vis/filtering/trajectories/particleFilter-0/add opticalphoton
 /vis/filtering/trajectories/particleFilter-0/invert true
