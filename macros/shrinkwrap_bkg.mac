@@ -2,7 +2,10 @@
 # ==============================================================================
 # RENO Far Site - Shrink-wrap Background Simulation
 # Hardware: Alpha Spectra 905 (2"x2") + 207 Base
-# Optimization: Surface Biasing (Cosine) & Optical Physics Disabled
+# Architecture: 
+#   1. Surface Contamination Geometry (Cylindrical Shell)
+#   2. RENO Far-Site ICP-MS Benchmark (B_ICP) Source Intensities
+#   3. Full Optical Physics ON + Trajectory Storage OFF
 # ==============================================================================
 
 /control/verbose 0
@@ -14,21 +17,28 @@
 
 # ==============================================================================
 # [ 아키텍트 패치: 광학 광자 궤적 저장 명시적 비활성화 ]
-# 메모리 보호를 위해 궤적을 C++ 메모리에서 지워버립니다.
+# 메모리 보호를 위해 물리 연산은 100% 수행하되 GUI 궤적 저장만 차단합니다.
 # ==============================================================================
 /RI_Sim/tracking/storeOpticalTraj false
 
 
+# ==============================================================================
+# 기하학적 설정 (표면 오염 모사)
+# 2인치 검출기 표면을 얇게 감싸는 실린더 형태(반경 3cm, 높이 5cm)에서 선원이 발생합니다.
+# ★ 0 keV Ion(정지 원자핵)은 어차피 붕괴 시 4π 등방성(Isotropic)으로 2차 입자를 방출하므로 
+# 이전의 cos(방향성 조준) 설정을 물리적으로 올바른 iso 로 정정합니다.
+# ==============================================================================
 /control/alias type Surface
 /control/alias shape Cylinder
 /control/alias radius 3.0 cm
 /control/alias halfz 5.0 cm
-/control/alias ang cos
+/control/alias ang iso
+
 
 # ==============================================================================
-# 1. 자연 방사능: K-40 (1.46 MeV)
+# 1. 자연 방사능: K-40 (논문 B_ICP 기준 636.7 Bq/kg)
 # ==============================================================================
-/gps/source/intensity 10.0
+/gps/source/intensity 636.7
 /gps/particle ion
 /gps/ion 19 40 0 0
 /gps/energy 0 keV
@@ -39,10 +49,10 @@
 /gps/ang/type {ang}
 
 # ==============================================================================
-# 2. Uranium (U-238) Chain
+# 2. Uranium (U-238) Chain - 영속 평형 앙상블 (논문 B_ICP 기준 25.9 Bq/kg)
 # ==============================================================================
 # Bi-214
-/gps/source/add 1.0
+/gps/source/add 25.9
 /gps/particle ion
 /gps/ion 83 214 0 0
 /gps/energy 0 keV
@@ -53,7 +63,7 @@
 /gps/ang/type {ang}
 
 # Po-214
-/gps/source/add 1.0
+/gps/source/add 25.9
 /gps/particle ion
 /gps/ion 84 214 0 0
 /gps/energy 0 keV
@@ -64,7 +74,7 @@
 /gps/ang/type {ang}
 
 # Pb-214
-/gps/source/add 1.0
+/gps/source/add 25.9
 /gps/particle ion
 /gps/ion 82 214 0 0
 /gps/energy 0 keV
@@ -75,7 +85,7 @@
 /gps/ang/type {ang}
 
 # Pa-234m
-/gps/source/add 1.0
+/gps/source/add 25.9
 /gps/particle ion
 /gps/ion 91 234 0 0
 /gps/energy 0 keV
@@ -86,10 +96,10 @@
 /gps/ang/type {ang}
 
 # ==============================================================================
-# 3. Thorium (Th-232) Chain
+# 3. Thorium (Th-232) Chain - 영속 평형 앙상블 (논문 B_ICP 기준 29.6 Bq/kg)
 # ==============================================================================
-# Tl-208
-/gps/source/add 0.36
+# ★ Tl-208 (29.6 * 분기비 0.3594 = 약 10.64 적용)
+/gps/source/add 10.64
 /gps/particle ion
 /gps/ion 81 208 0 0
 /gps/energy 0 keV
@@ -100,7 +110,7 @@
 /gps/ang/type {ang}
 
 # Ac-228
-/gps/source/add 1.0
+/gps/source/add 29.6
 /gps/particle ion
 /gps/ion 89 228 0 0
 /gps/energy 0 keV
@@ -111,7 +121,7 @@
 /gps/ang/type {ang}
 
 # Pb-212
-/gps/source/add 1.0
+/gps/source/add 29.6
 /gps/particle ion
 /gps/ion 82 212 0 0
 /gps/energy 0 keV
@@ -122,7 +132,7 @@
 /gps/ang/type {ang}
 
 # Bi-212
-/gps/source/add 1.0
+/gps/source/add 29.6
 /gps/particle ion
 /gps/ion 83 212 0 0
 /gps/energy 0 keV
@@ -132,8 +142,8 @@
 /gps/pos/halfz {halfz}
 /gps/ang/type {ang}
 
-# ★ Ra-224 (241 keV 기여 - 영속 평형 보완)
-/gps/source/add 1.0
+# Ra-224
+/gps/source/add 29.6
 /gps/particle ion
 /gps/ion 88 224 0 0
 /gps/energy 0 keV
