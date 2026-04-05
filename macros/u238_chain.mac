@@ -5,11 +5,14 @@
 /control/verbose 0
 /run/verbose 0
 
-# 광학 연산 강제 비활성화 -> EventAction의 O(1) 포아송 역산 로직 유도
-/process/optical/processActivation Scintillation false
-/process/optical/processActivation Cerenkov false
-
 /run/initialize
+
+# ==============================================================================
+# [ 아키텍트 패치: 광학 광자 궤적 저장 명시적 비활성화 ]
+# 메모리 보호를 위해 궤적을 C++ 메모리에서 지워버립니다.
+# ==============================================================================
+/RI_Sim/tracking/storeOpticalTraj false
+
 
 # 공통 공간 변수 설정
 /control/alias type Volume

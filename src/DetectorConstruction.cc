@@ -24,16 +24,12 @@ DetectorConstruction::~DetectorConstruction() {}
 G4VPhysicalVolume* DetectorConstruction::Construct() {
     G4NistManager* nist = G4NistManager::Instance();
     
-    // 1. 물질 정의
     G4Material* air    = nist->FindOrBuildMaterial("G4_AIR");
     G4Material* vacuum = nist->FindOrBuildMaterial("G4_Galactic");
     G4Material* al     = nist->FindOrBuildMaterial("G4_Al");
     G4Material* cu     = nist->FindOrBuildMaterial("G4_Cu");
-    
-    // ★ [Segfault 해결] G4_EPOXY 대신 실존하는 G4_POLYCARBONATE 사용
     G4Material* fr4    = nist->FindOrBuildMaterial("G4_POLYCARBONATE"); 
     
-    // ★ [방어적 널 체크] 포인터 할당 실패 시 즉각적인 예외 처리
     if (!fr4) {
         G4Exception("DetectorConstruction::Construct", "ERR_MAT_NOT_FOUND",
                     FatalException, "G4_POLYCARBONATE not found in NIST database!");
@@ -43,10 +39,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     G4Material* nai    = nist->FindOrBuildMaterial("G4_SODIUM_IODIDE");
     G4Material* glass  = nist->FindOrBuildMaterial("G4_GLASS_PLATE");
     
-    // 알파선 퀜칭을 위한 Birks Constant 적용
     nai->GetIonisation()->SetBirksConstant(0.0125 * mm/MeV);
 
-    // Base 276L 불감 물질 세팅 (Al 40%, Cu 20%, FR4 40%, 밀도 1.8 g/cm3)
     G4Material* base276L = new G4Material("Base276L_Mat", 1.8*g/cm3, 3);
     base276L->AddMaterial(al, 40*perCent);
     base276L->AddMaterial(cu, 20*perCent);
@@ -56,21 +50,59 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     grease->AddElement(nist->FindOrBuildElement("C"), 85*perCent);
     grease->AddElement(nist->FindOrBuildElement("H"), 15*perCent);
 
-    // --- 광학 특성 ---
+// =========================================================================
+    // --- NaI(Tl) 광학 특성 및 발광 메커니즘 (Optical Properties) ---
+    // =========================================================================
+    
+    // 1. 기준 광자 에너지 대역 (가시광선 영역)
+    // NaI(Tl)의 최대 발광 파장은 약 415 nm이며, 이는 에너지로 환산 시 약 3.0 eV에 해당합니다.
+    // 2.5 eV ~ 3.5 eV (약 350 nm ~ 500 nm) 대역을 정의하여 스펙트럼 범위를 모사합니다.
     std::vector<G4double> photonEnergy = {2.5 * eV, 3.0 * eV, 3.5 * eV};
+
+    // 2. 굴절률 (Refractive Index)
+    // NaI 결정의 굴절률은 약 1.85입니다. 이 값은 테플론(반사체)이나 
+    // 광학 그리스(Optical Grease)와의 경계면에서 스넬의 법칙(Snell's Law)에 따른 
+    // 전반사 및 굴절 각도를 결정하는 핵심 인자입니다.
     std::vector<G4double> rindexNaI  = {1.85, 1.85, 1.85};
+
+    // 3. 발광 스펙트럼 (Scintillation Spectrum)
+    // 3.0 eV (415 nm)에서 피크(1.0)를 가지며, 양옆 파장대역으로 줄어드는 형태의 발광 강도를 정의합니다.
     std::vector<G4double> scintYield = {0.1, 1.0, 0.1};
+
+    // 4. 자체 흡수 길이 (Absorption Length)
+    // NaI(Tl)가 자신이 만들어낸 빛에 대해 얼마나 투명한지를 나타냅니다. 
+    // 100 cm는 빛이 결정 내부에서 거의 흡수되지 않고 매끄럽게 통과함을 의미합니다.
     std::vector<G4double> absNaI     = {100.*cm, 100.*cm, 100.*cm};
 
     G4MaterialPropertiesTable* mptNaI = new G4MaterialPropertiesTable();
     mptNaI->AddProperty("RINDEX", photonEnergy, rindexNaI);
     mptNaI->AddProperty("ABSLENGTH", photonEnergy, absNaI);
     mptNaI->AddProperty("SCINTILLATIONCOMPONENT1", photonEnergy, scintYield);
+    
+    // 5. 광수율 (Light Yield)
+    // 1 MeV의 에너지가 침적되었을 때 약 38,000개의 광학 광자(Optical Photon)가 생성됩니다.
     mptNaI->AddConstProperty("SCINTILLATIONYIELD", 38000. / MeV);
+    
+    // ★ [Geant4 v11 필수 파라미터]
+    // 첫 번째 발광 컴포넌트가 전체 발광량에서 차지하는 비율(100% = 1.0)을 명시합니다.
+    // (이 속성이 누락되면 Geant4 엔진은 광자를 단 한 개도 생성하지 않습니다.)
+    mptNaI->AddConstProperty("SCINTILLATIONYIELD1", 1.0); 
+    
+    // 6. 에너지 분해능 스케일 (Resolution Scale)
+    // 1.0은 광자 생성이 순수한 포아송 분포(Poisson statistics)의 통계적 요동을 따름을 의미합니다.
     mptNaI->AddConstProperty("RESOLUTIONSCALE", 1.0);
+
+    // 7. 섬광 감쇠 시간 (Decay Time Constant)
+    // NaI(Tl)의 대표적인 형광 감쇠 시간(Decay Time)인 250 ns를 적용합니다.
     mptNaI->AddConstProperty("SCINTILLATIONTIMECONSTANT1", 250. * ns);
+    
     nai->SetMaterialPropertiesTable(mptNaI);
 
+    // =========================================================================
+    // --- 경계면 매질 광학 특성 (Boundary Optical Properties) ---
+    // =========================================================================
+    // 빛이 NaI(1.85) -> 그리스(1.50) -> PMT 유리창(1.50) -> 진공(1.0)으로 
+    // 이동하는 과정에서 경계면 굴절과 반사가 완벽하게 모사되도록 굴절률을 세팅합니다.
     std::vector<G4double> rindexGlass  = {1.50, 1.50, 1.50};
     std::vector<G4double> rindexGrease = {1.50, 1.50, 1.50};
     std::vector<G4double> rindexVacAir = {1.0, 1.0, 1.0};
@@ -88,12 +120,14 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     vacuum->SetMaterialPropertiesTable(mptVacAir);
     air->SetMaterialPropertiesTable(mptVacAir);
 
+    // 테플론 반사체 (98% 반사율)
     G4OpticalSurface* refSurface = new G4OpticalSurface("ReflectorSurface", glisur, ground, dielectric_metal);
     std::vector<G4double> refTeflon = {0.98, 0.98, 0.98};
     G4MaterialPropertiesTable* mptRef = new G4MaterialPropertiesTable();
     mptRef->AddProperty("REFLECTIVITY", photonEnergy, refTeflon);
     refSurface->SetMaterialPropertiesTable(mptRef);
 
+    // 광전 음극 (QE 28%)
     G4OpticalSurface* pmtSurface = new G4OpticalSurface("PhotocathodeSurface", glisur, polished, dielectric_metal);
     std::vector<G4double> refPMT = {0.0, 0.0, 0.0}; 
     std::vector<G4double> effPMT = {0.28, 0.28, 0.28}; 
@@ -102,7 +136,9 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     mptPMT->AddProperty("EFFICIENCY", photonEnergy, effPMT);
     pmtSurface->SetMaterialPropertiesTable(mptPMT);
 
+    // =========================================================================
     // 2. 기하 구조 생성
+    // =========================================================================
     G4double rNaI         = 2.54*cm;  
     G4double hNaI         = 2.54*cm;  
     G4double thickRefl    = 1.5*mm;   
