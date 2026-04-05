@@ -1,0 +1,31 @@
+# macros/k40_decay.mac
+# ==============================================================================
+# RI_Decay: K-40 Natural Radioactivity (Hybrid Mode)
+# ==============================================================================
+/control/verbose 0
+/run/verbose 0
+/event/verbose 0
+/tracking/verbose 0
+
+# ★ 하이브리드 엔진 활성화: 광학 추적 오버헤드 제거
+/process/optical/processActivation Scintillation false
+/process/optical/processActivation Cerenkov false
+
+/run/initialize
+
+# GPS 선원 설정: World 체적 전체 분포
+/gps/particle ion
+/gps/ion 19 40 0 0
+/gps/energy 0 keV
+
+/gps/pos/type Volume
+/gps/pos/shape Cylinder
+/gps/pos/radius 1.0 m
+/gps/pos/halfz 1.0 m
+/gps/pos/confine World
+/gps/ang/type iso
+
+# I/O 파이프라인 설정
+/run/printProgress 1000000
+/analysis/setFileName k40_decay_10M.root
+/run/beamOn 10000000
