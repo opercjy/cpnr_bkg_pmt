@@ -1,0 +1,156 @@
+# background.mac
+# ==============================================================================
+# CHOOZ Full External Background Simulation 
+# Hardware: High-End Server Optimized (Multi-Isotope, High Statistics)
+# ==============================================================================
+/run/initialize
+
+# [ 공통 공간 설정 매크로 변수화 (코드 길이 단축) ]
+/control/alias type Volume
+/control/alias shape Cylinder
+/control/alias radius 1.0 m
+#/control/alias radius 1.5 m
+/control/alias halfz 1.0 m
+#/control/alias halfz 1.5 m
+/control/alias confine World
+/control/alias ang iso
+
+# ==============================================================================
+# 1. 자연 방사능: K-40 (1.46 MeV)
+# ==============================================================================
+/gps/source/intensity 10.0
+/gps/particle ion
+/gps/ion 19 40 0 0
+/gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/pos/confine {confine}
+/gps/ang/type {ang}
+
+# ==============================================================================
+# 2. Uranium (U-238) Chain
+# ==============================================================================
+# Bi-214 (1.76, 2.2 MeV 등 주력 감마)
+/gps/source/add 1.0
+/gps/particle ion
+/gps/ion 83 214 0 0
+/gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/pos/confine {confine}
+/gps/ang/type {ang}
+
+# Pb-214 (295, 352 keV)
+/gps/source/add 1.0
+/gps/particle ion
+/gps/ion 82 214 0 0
+/gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/pos/confine {confine}
+/gps/ang/type {ang}
+
+# Pa-234m (1.001 MeV 등)
+/gps/source/add 1.0
+/gps/particle ion
+/gps/ion 91 234 0 0 
+/gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/pos/confine {confine}
+/gps/ang/type {ang}
+
+# ==============================================================================
+# 3. Thorium (Th-232) Chain
+# ==============================================================================
+# Tl-208 (2.614 MeV, 가장 높은 자연 에너지 피크)
+/gps/source/add 0.36
+/gps/particle ion
+/gps/ion 81 208 0 0
+/gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/pos/confine {confine}
+/gps/ang/type {ang}
+
+# Ac-228 (911, 969 keV)
+/gps/source/add 1.0
+/gps/particle ion
+/gps/ion 89 228 0 0
+/gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/pos/confine {confine}
+/gps/ang/type {ang}
+
+# Pb-212 (239 keV)
+/gps/source/add 1.0
+/gps/particle ion
+/gps/ion 82 212 0 0
+/gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/pos/confine {confine}
+/gps/ang/type {ang}
+
+# Bi-212 (727 keV)
+/gps/source/add 1.0
+/gps/particle ion
+/gps/ion 83 212 0 0
+/gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/pos/confine {confine}
+/gps/ang/type {ang}
+
+# ==============================================================================
+# 4. Artificial Radioactivity (인공 방사능)
+# ==============================================================================
+# Cs-137 (662 keV)
+/gps/source/add 1.5
+/gps/particle ion
+/gps/ion 55 137 0 0
+/gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/pos/confine {confine}
+/gps/ang/type {ang}
+
+# Co-60 (1.17, 1.33 MeV)
+/gps/source/add 0.5
+/gps/particle ion
+/gps/ion 27 60 0 0
+/gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/pos/confine {confine}
+/gps/ang/type {ang}
+
+# ==============================================================================
+# 시뮬레이션 실행 (서버 스펙에 맞춰 천만 개 단위로 쏘셔도 무방합니다)
+# ==============================================================================
+/run/printProgress 100000
+# 일단 100만 개로 테스트 후, 1000만 개 이상으로 늘려 통계적 요동을 잡으세요.
+/analysis/setFileName decay_chain_1M
+
+/run/beamOn 1000000
