@@ -67,9 +67,11 @@ docker build -t naisim-env:1.0 .
 # 호스트 네트워크 공유 옵션을 추가하십시오: docker build --network host -t naisim-env:1.0 .
 ```
 
-### 3.2. 컨테이너 실행 (Run the Container)
-Geant4의 GUI 시각화 창을 로컬 모니터로 포워딩하고, 코드를 실시간 동기화하기 위해 아래 명령어로 접속합니다.
+### 3.2. 컨테이너 실행 및 환경 자동화 (Run the Container)
+Geant4의 GUI 시각화 창을 로컬 모니터로 포워딩하고, 코드를 실시간 동기화하여 개발하기 위해 아래와 같이 컨테이너를 실행합니다.
 
+**[옵션 1: 일회성 기본 실행]**
+터미널에 직접 명령어를 입력하여 실행하는 방법입니다.
 ```bash
 # 로컬 X11 서버 접근 권한 허용 (호스트 터미널에서 1회 실행)
 xhost +local:docker
@@ -81,7 +83,21 @@ docker run -it --rm \
     -v $(pwd):/work \
     naisim-env:1.0
 ```
-
+**[옵션 2: Bash 함수로 영구 자동화]**
+매번 위 긴 명령어를 입력하는 것은 비효율적입니다. 호스트 PC의 ~/.bashrc (또는 Mac의 경우 ~/.zshrc) 파일 맨 끝에 아래의 쉘 함수를 추가해 두면, 명령어 하나로 즉시 환경에 접속할 수 있습니다.
+```bash
+# ~/.bashrc 파일 맨 아래에 추가
+rung4qt6() {
+    xhost +local:docker > /dev/null 2>&1
+    docker run -it --rm \
+        -e DISPLAY=$DISPLAY \
+        -v /tmp/.X11-unix:/tmp/.X11-unix \
+        -v $(pwd):/work \
+        naisim-env:1.0
+}
+```
+위 코드를 파일에 추가하고 저장한 뒤, 터미널에서 source ~/.bashrc를 한 번 실행하여 환경을 갱신하십시오.
+이제부터는 터미널에서 rung4qt6 라고 입력하기만 하면, 즉시 Geant4 11.x Qt6 개발 환경 도커 컨테이너로 진입하게 됩니다.
 ---
 
 ## 4. Macro-Driven Architecture (매크로 기반 제어 시스템)
