@@ -2,7 +2,7 @@
 # RI_Decay: NaI(Tl) PMT Environmental Radioactivity Simulation
 
 [![Geant4](https://img.shields.io/badge/Geant4-v11.x-blue.svg)](https://geant4.web.cern.ch/)
-[![ROOT](https://img.shields.io/badge/ROOT-v6.30.04-blue.svg)](https://root.cern/)
+[![ROOT](https://img.shields.io/badge/ROOT-v6.3x-blue.svg)](https://root.cern/)
 [![OS](https://img.shields.io/badge/OS-Rocky%20Linux%209-green.svg)](https://rockylinux.org/)
 
 ## 1. Overview & Design Philosophy (개요 및 설계 철학)
