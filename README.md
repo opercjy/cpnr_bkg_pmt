@@ -1,3 +1,4 @@
+
 # RI_Decay: NaI(Tl) PMT Environmental Radioactivity Simulation
 
 [![Geant4](https://img.shields.io/badge/Geant4-v11.x-blue.svg)](https://geant4.web.cern.ch/)
@@ -12,9 +13,9 @@
 * **왜 도커(Docker)를 사용하는가?**
   Geant4와 ROOT는 운영체제 및 시스템 라이브러리(C++ 버전, Qt 등) 의존성이 매우 높습니다. 로컬 PC에 직접 설치할 경우 발생하는 수많은 충돌 에러를 원천 차단하기 위해, 전 세계 어디서든 **100% 동일한 런타임 환경**을 보장하는 도커 컨테이너를 사용합니다.
 * **왜 광학 물리(Optical Physics)를 끄고 하이브리드(Hybrid) 연산을 하는가?**
-  1MeV의 에너지가 결정에 흡수될 때마다 약 38,000개의 물리적 광자가 생성됩니다. 1,000만(10M+) 이벤트를 모사할 경우 수조 개의 광자 궤적(Tracking)을 연산해야 하므로 메모리 붕괴(Segfault/OOM)와 심각한 CPU 병목이 발생합니다. 이를 타파하기 위해, 대규모 시뮬레이션 시에는 매크로에서 물리적 빛 생성을 차단하되, C++ 커널(`EventAction.cc`)에서 결정 침적 에너지를 기반으로 **포아송 통계 분포(G4Poisson)를 이용해 광전자 수(NPE)를 역산($O(1)$ 속도)**하는 초고속 하이브리드 최적화 기법을 적용했습니다.
-* **왜 10µs의 Time Window(시간 지연 컷오프)를 적용했는가?**
-  U-238 등 자연방사능 동위원소는 붕괴 사슬을 거치며 수 일에서 수억 년에 걸쳐 에너지를 방출합니다. Geant4의 기본 Radioactive Decay는 이 모든 시간을 한 번에 추적합니다. 시간 컷오프를 주지 않으면 수억 년 뒤의 에너지까지 단일 프롬프트 이벤트(Pile-up)로 합산되어 물리적 스펙트럼이 완전히 왜곡됩니다. 따라서 실제 검출기의 DAQ Gate 성능과 동일한 10µs의 컷오프를 `SteppingAction.cc`에 강제하여 무결성을 보장했습니다.
+  1 MeV의 에너지가 결정에 흡수될 때마다 약 38,000개의 물리적 광자가 생성됩니다. 1,000만(10M+) 이벤트를 모사할 경우 수조 개의 광자 궤적(Tracking)을 연산해야 하므로 메모리 붕괴(Segfault/OOM)와 심각한 CPU 병목이 발생합니다. 이를 타파하기 위해, 대규모 시뮬레이션 시에는 매크로에서 물리적 빛 생성을 차단하되, C++ 커널에서 결정 침적 에너지를 기반으로 **포아송 통계 분포(G4Poisson)를 이용해 광전자 수(NPE)를 역산($O(1)$ 속도)**하는 초고속 하이브리드 최적화 기법을 적용했습니다.
+* **왜 10 µs의 Time Window(시간 지연 컷오프)를 적용했는가?**
+  U-238 등 자연방사능 동위원소는 붕괴 사슬을 거치며 수 일에서 수억 년에 걸쳐 에너지를 방출합니다. Geant4의 기본 Radioactive Decay는 이 모든 시간을 한 번에 추적합니다. 시간 컷오프를 주지 않으면 수억 년 뒤의 에너지까지 단일 프롬프트 이벤트(Pile-up)로 합산되어 물리적 스펙트럼이 완전히 왜곡됩니다. 따라서 실제 검출기의 DAQ Gate 성능과 동일한 10 µs의 컷오프를 `SteppingAction.cc`에 강제하여 무결성을 보장했습니다.
 
 ---
 
@@ -35,7 +36,7 @@ RI_Decay/
 │   ├── PrimaryGeneratorAction.hh # 방사선원(GPS) 발생 정의
 │   ├── RunAction.hh              # ROOT Ntuple I/O 파이프라인
 │   ├── EventAction.hh            # 하이브리드 NPE 역산 및 데이터 합산
-│   ├── SteppingAction.hh         # 에너지 수집 및 10µs DAQ Gate 컷오프
+│   ├── SteppingAction.hh         # 에너지 수집 및 10 µs DAQ Gate 컷오프
 │   └── TrackingAction.hh         # 광학 광자(Optical Photon) 추적 프루닝
 │
 ├── src/                    # C++ 소스 파일 (.cc)
@@ -44,9 +45,10 @@ RI_Decay/
 ├── macros/                 # Geant4 매크로 및 분석 스크립트
 │   ├── vis.mac             # 일반 입자 궤적 및 기하구조 시각화
 │   ├── vis_optics.mac      # 광학 궤적 디버깅 및 투시도 시각화
-│   ├── k40_decay.mac       # K-40 자연방사능 모사 (10M 하이브리드 연산)
-│   ├── u238_chain.mac      # U-238 붕괴 사슬 모사 (10M 하이브리드 연산)
-│   ├── full_bkg.mac        # 전체 차폐체 방사능 평가 매크로
+│   ├── shrinkwrap_bkg.mac  # 반사체 및 랩핑 물질 표면 방사능 평가 (Surface Bkg)
+│   ├── full_bkg.mac        # 외부 환경 전체 차폐체 방사능 평가 (Volume Bkg)
+│   ├── k40_decay.mac       # K-40 단일 핵종 모사
+│   ├── u238_chain.mac      # U-238 붕괴 사슬 모사
 │   └── plot_spectra.py     # 에너지 및 NPE 스펙트럼 시각화 Python 스크립트
 │
 └── build/                  # 컴파일된 바이너리 및 생성물 (Git 무시됨)
@@ -90,8 +92,9 @@ docker run -it --rm \
   대규모 런을 돌리기 전, 기하 구조가 올바른지 검증하고 입자의 거동을 시각적으로 확인합니다. 메모리 보호를 위해 `vis.mac`은 광자 렌더링을 차단하고, `vis_optics.mac`은 광학 추적에 특화된 Wireframe 투시도를 제공합니다.
 
 ### 🚀 [2] 초고속 프로덕션 전용 매크로 (Batch 모드)
-* **`k40_decay.mac`, `u238_chain.mac`, `full_bkg.mac` 등**
-  매크로 내부에 `/process/optical/processActivation Scintillation false` 명령어가 삽입되어 있습니다. 물리적 빛 생성을 원천 차단하여 CPU 연산을 극도로 단축시키고, C++의 '하이브리드 NPE 역산 시스템'을 발동시킵니다. 1,000만(10M+) 이벤트도 수 분 내에 처리합니다.
+프로덕션 매크로들은 내부에 `/process/optical/processActivation Scintillation false` 옵션을 강제하여 물리적 빛 생성을 차단, C++의 '하이브리드 NPE 역산 시스템'을 유도합니다.
+* **`shrinkwrap_bkg.mac`**: NaI 결정을 감싸는 반사체/랩핑 물질 등 검출기 내벽 표면에서 발생하는 **오염(Surface Background)**을 평가하는 핵심 모드입니다.
+* **`full_bkg.mac`**: 검출기 외곽 구조물 및 전체 차폐체에서 기인하는 **체적 방사능(Volume Background)**을 모사합니다.
 
 ---
 
@@ -109,16 +112,17 @@ make -j$(nproc)
 # 3-1. [GUI 모드] 시각화 창 띄우기 (vis.mac 자동 로드)
 ./RI_Sim
 
-# 3-2. [배치 모드] 특정 매크로를 로드하여 대규모 하이브리드 연산 실행
-./RI_Sim macros/k40_decay.mac
-./RI_Sim macros/u238_chain.mac
-./RI_Sim macros/full_bkg.mac
+# 3-2. [배치 모드] 특정 목적의 매크로를 로드하여 대규모 하이브리드 연산 실행
+./RI_Sim macros/shrinkwrap_bkg.mac  # 반사체 랩핑 물질 표면 방사능 평가
+./RI_Sim macros/full_bkg.mac        # 외부 환경 전체 차폐체 모사
+./RI_Sim macros/k40_decay.mac       # K-40 단일 핵종 모사
+./RI_Sim macros/u238_chain.mac      # U-238 붕괴 사슬 모사
 ```
 
 ---
 
 ## 6. Data Analysis (데이터 분석 파이프라인)
-매크로 실행이 완료되면 `build/` 폴더 내에 시뮬레이션 결과가 담긴 ROOT Ntuple 파일(예: `u238_chain_10M.root`)이 자동 생성됩니다. 내장된 Python 스크립트를 통해 직관적으로 데이터를 시각화할 수 있습니다.
+매크로 실행이 완료되면 `build/` 폴더 내에 시뮬레이션 결과가 담긴 ROOT Ntuple 파일(예: `shrinkwrap_bkg_10M.root`)이 자동 생성됩니다. 내장된 Python 스크립트를 통해 직관적으로 데이터를 시각화할 수 있습니다.
 
 ```bash
 # 에너지 스펙트럼 및 NPE 분포 플로팅 (uproot, matplotlib 기반)
