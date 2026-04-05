@@ -20,31 +20,32 @@
 전산모사 코드의 디렉토리 구조는 다음과 같이 구성되어 있습니다.
 
 ```text
-NaI_Sim_Project/
-├── CMakeLists.txt          # CMake 빌드 설정 파일
+RI_Decay/
+├── CMakeLists.txt          # CMake 빌드 설정 파일 (C++17 표준 강제)
 ├── Dockerfile              # All-in-one 전산모사/코딩 환경 구성 도커 파일
-├── NaISim.cc               # Geant4 메인 실행 파일 (main 함수)
+├── main.cc                 # ★ 통일: Geant4 메인 실행 파일
 │
-├── include/                # C++ 헤더 파일 (.hh) 디렉토리
+├── include/                # C++ 헤더 파일 (.hh)
 │   ├── ActionInitialization.hh
-│   ├── DetectorConstruction.hh   # NaI 결정, PMT, 차폐체 기하구조 정의
-│   ├── PrimaryGeneratorAction.hh # 방사선원(GPS) 및 우주선(CRY) 발생 정의
-│   ├── RunAction.hh              # ROOT Ntuple 초기화 및 저장
+│   ├── DetectorConstruction.hh
+│   ├── MyPhysicsList.hh
+│   ├── PMTSD.hh
+│   ├── PrimaryGeneratorAction.hh
+│   ├── RunAction.hh
 │   ├── EventAction.hh
-│   └── SteppingAction.hh         # 광학 광자(Optical Photon) 추적 및 카운팅
+│   ├── SteppingAction.hh
+│   └── TrackingAction.hh
 │
-├── src/                    # C++ 소스 파일 (.cc) 디렉토리
-│   ├── ActionInitialization.cc
-│   ├── DetectorConstruction.cc
-│   ├── PrimaryGeneratorAction.cc
-│   ├── RunAction.cc
-│   ├── EventAction.cc
-│   └── SteppingAction.cc
+├── src/                    # C++ 소스 파일 (.cc)
+│   └── *.cc                # 헤더에 대응하는 구현부 파일들
 │
-├── macros/                 # Geant4 매크로 스크립트 (.mac) 디렉토리
-│   ├── vis.mac             # Qt6 / OpenGL 시각화 설정
-│   ├── k40_decay.mac       # K-40 자연방사능 붕괴 테스트 매크로
-│   └── u238_chain.mac      # U-238 붕괴 체인 테스트 매크로
+├── macros/                 # Geant4 매크로 및 분석 스크립트
+│   ├── vis.mac / vis_optics.mac
+│   ├── k40_decay.mac
+│   ├── u238_chain.mac
+│   ├── full_bkg.mac
+│   ├── shrinkwrap_bkg.mac
+│   └── plot_spectra.py
 │
 └── build/                  # 컴파일된 바이너리 및 빌드 생성물 (Git 무시됨)
 ```
@@ -106,13 +107,16 @@ docker run -it --rm \
 # 1. 빌드 폴더 생성 및 이동
 mkdir build && cd build
 
-# 2. CMake 구성 및 컴파일 (멀티코어 활용)
+# 2. CMake 구성 및 멀티코어 컴파일 (-j 옵션으로 속도 극대화)
 cmake ..
 make -j$(nproc)
 
-# 3-1. GUI 시각화 모드로 실행 (vis.mac 자동 로드)
-./NaISim
+# 3-1. [GUI 모드] 시각화 창 띄우기 (vis.mac 자동 로드)
+# ★ 통일: 빌드 스크립트에 선언된 타겟 이름과 동일한 RI_Sim 실행
+./RI_Sim
 
-# 3-2. 백그라운드 배치 모드로 특정 매크로 실행 (예: K-40 모사)
-./NaISim -m ../macros/k40_decay.mac
+# 3-2. [배치 모드] 특정 매크로를 로드하여 대규모 하이브리드 연산 실행
+# ★ 통일: K-40 또는 U-238 붕괴 모사 백그라운드 실행
+./RI_Sim macros/k40_decay.mac
+./RI_Sim macros/u238_chain.mac
 ```
