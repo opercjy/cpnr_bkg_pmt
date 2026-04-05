@@ -187,4 +187,25 @@ make -j$(nproc)
 # Rocky Linux 9 (도커 환경)에서는 시스템 호환성을 위해 python3 명령어를 명시적으로 사용합니다.
 python3 macros/plot_spectra.py
 ```
+
 이 파이썬 스크립트는 Geant4가 출력한 원시 데이터를 1차원 히스토그램으로 변환하여, 순수 침적 에너지(MC Total Energy)와 통계적 요동이 반영된 광전자 수(NPE)의 상관관계를 서브플롯(Subplot) 형태로 즉시 도출합니다.
+
+## 7. Appendix: Architecture Defense Logic (전문가 아키텍처 방어 논리)
+본 전산모사 코드는 단순한 작동을 넘어, 초저방사능(Ultra-low Background) 광학 물리 시뮬레이션에서 흔히 발생하는 시스템적 오류와 물리적 왜곡을 방어하기 위해 치밀하게 설계되었습니다. 타 연구자와의 교차 검증 및 디펜스를 위한 핵심 아키텍처 논리를 명시합니다.
+
+### 7.1. 왜 스코어링(Scoring) 대신 SD(Sensitive Detector)를 구현했는가?
+Geant4에 내장된 커맨드 기반 스코어링(Command-based Scorer)을 사용하지 않고 `PMTSD` 클래스를 직접 구현한 이유는 **광전 음극(Photocathode)의 양자 역학적 특수성** 때문입니다.
+* 스코어링 메쉬는 '에너지 침적량'을 측정하는 데 유리하지만, PMT 표면은 에너지가 쌓이는 곳이 아니라 **광학 광자(Optical Photon)가 광전자(Photoelectron)로 변환되는 곳**입니다.
+* 커널에서 `optParam->SetBoundaryInvokeSD(true)`를 활성화하여, Geant4의 `G4OpBoundaryProcess`가 PMT 표면(`dielectric_metal`)에 도달한 광자에 대해 28%의 양자 효율(QE) 확률 연산을 먼저 수행하도록 설계했습니다.
+* 즉, 물리 엔진의 순수한 양자 변환 주사위를 통과한 진짜 '광전자'들만 SD로 보고되므로, 유저가 데이터 후처리 단계에서 임의로 QE 상수를 곱하는 작위적인 방식을 원천 배제하고 물리적 무결성을 100% 확보했습니다.
+
+### 7.2. 분광 특성 매개변수의 물리적 당위성 (Detector Spectral Properties)
+`DetectorConstruction.cc`에 주입된 광학 매개변수들은 실험실 환경의 미시적 물리 현상을 현실화하는 핵심 인자입니다.
+* **`RAYLEIGH` (레일리 산란 = 40 cm):** 이 값이 없으면 광자가 진공처럼 일직선으로 날아가 PMT 중앙으로 비정상적인 집중(Focusing)이 일어납니다. 두꺼운 NaI 결정 내부에서 푸른빛(415 nm)이 겪는 40cm 단위의 산란을 구현하여, 현실적인 집광 시간(Timing)과 궤적 난반사를 모사했습니다.
+* **`UNIFIED` 모델과 `groundfrontpainted`:** 테플론 반사체를 낡은 `GLISUR` 거울면 모델로 모사하면 시간 분해능이 왜곡됩니다. 최신 `UNIFIED` 모델을 통해 테플론 랩핑에 닿은 빛이 98%의 확률로 완벽하게 사방으로 흩뿌려지는 **람베르트 난반사(Lambertian Diffuse Reflection)**를 강제했습니다.
+* **광전 음극의 `REFLECTIVITY` (0.0):** PMT 유리와 내부 진공 사이의 `dielectric_metal` 경계에서 빛이 결정 쪽으로 다시 튕겨 나가는 비물리적 반사를 억제하고, 오직 28%의 흡수/검출 상호작용만 일어나도록 통제했습니다.
+
+### 7.3. 경계면 스텝 사이즈 아티팩트(Step Size Artifact) 2중 방어망
+몬테카를로 광학 시뮬레이션의 고질적 병폐인 **'경계면 무한 루프(부동소수점 한계로 스텝 사이즈가 0에 수렴하는 현상)'**를 방어하기 위해 커널 레벨의 2중 차단 로직이 적용되어 있습니다.
+1. **SD 단의 강제 처형 (Explicit Kill):** 광자가 28%의 QE를 뚫고 `PMTSD`에 진입하여 계측된 직후, `track->SetTrackStatus(fStopAndKill)`가 호출됩니다. 검출이 완료된 입자를 즉시 소멸시켜 경계면에 갇혀 마이크로 스텝을 유발할 여지를 제거했습니다.
+2. **경계면 흡수 메커니즘 (Boundary Absorption):** 검출 확률 28%를 통과하지 못한 나머지 72%의 광자들은 `REFLECTIVITY 0.0` 설정에 의해 경계면에서 즉각 `fAbsorption`(흡수) 판정을 받고 소멸합니다. 결과적으로 경계면에서 무의미하게 맴도는 광자가 수학적으로 존재할 수 없는 매우 견고한(Robust) 상태를 유지합니다.
