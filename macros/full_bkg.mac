@@ -1,17 +1,29 @@
-# background.mac
+# macros/full_bkg.mac
 # ==============================================================================
-# CHOOZ Full External Background Simulation 
-# Hardware: High-End Server Optimized (Multi-Isotope, High Statistics)
+# RI_Decay: NaI(Tl) Full Environmental Background Simulation
+# Architecture: High-Speed Hybrid Mode (Optical Physics Off, Multi-Isotope)
 # ==============================================================================
+
+# 시스템 I/O 부하 감소를 위한 Verbose 제한
+/control/verbose 0
+/run/verbose 0
+/event/verbose 0
+/tracking/verbose 0
+
+# 광학 연산 강제 비활성화 -> EventAction의 O(1) 포아송 역산 로직 유도
+/process/optical/processActivation Scintillation false
+/process/optical/processActivation Cerenkov false
+
 /run/initialize
 
+# ==============================================================================
 # [ 공통 공간 설정 매크로 변수화 (코드 길이 단축) ]
+# ==============================================================================
 /control/alias type Volume
 /control/alias shape Cylinder
+# World 볼륨 크기(1m x 1m x 1m Half-length)에 맞춘 최대 실린더 반경 및 높이
 /control/alias radius 1.0 m
-#/control/alias radius 1.5 m
 /control/alias halfz 1.0 m
-#/control/alias halfz 1.5 m
 /control/alias confine World
 /control/alias ang iso
 
@@ -147,10 +159,13 @@
 /gps/ang/type {ang}
 
 # ==============================================================================
-# 시뮬레이션 실행 (서버 스펙에 맞춰 천만 개 단위로 쏘셔도 무방합니다)
+# 시뮬레이션 실행 및 ROOT 데이터 파이프라인
 # ==============================================================================
-/run/printProgress 100000
-# 일단 100만 개로 테스트 후, 1000만 개 이상으로 늘려 통계적 요동을 잡으세요.
-/analysis/setFileName decay_chain_1M
+# 100만 단위로 진행률 출력 (로그 파일 폭발 방지)
+/run/printProgress 1000000
 
-/run/beamOn 1000000
+# ★ 출력 파일명 지정 (이전에 수정한 RunAction.cc 덕분에 정상적으로 덮어쓰기 적용됨)
+/analysis/setFileName full_bkg_10M.root
+
+# 통계적 요동을 잡기 위한 1,000만 개(10M) 초고속 프로덕션 런
+/run/beamOn 10000000
