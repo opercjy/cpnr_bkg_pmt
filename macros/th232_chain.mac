@@ -1,0 +1,60 @@
+# macros/th232_chain.mac
+# ==============================================================================
+# RI_Decay: Th-232 Decay Chain (Hybrid Mode)
+# ==============================================================================
+/control/verbose 0
+/run/verbose 0
+
+/process/optical/processActivation Scintillation false
+/process/optical/processActivation Cerenkov false
+
+/run/initialize
+
+# 공통 공간 변수 설정
+/control/alias type Volume
+/control/alias shape Cylinder
+/control/alias radius 1.0 m
+/control/alias halfz 1.0 m
+/control/alias confine World
+/control/alias ang iso
+
+# 1. Tl-208 (★ 2.614 MeV 피크 - 분기비 0.36 적용)
+/gps/source/intensity 0.36
+/gps/particle ion
+/gps/ion 81 208 0 0
+/gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/pos/confine {confine}
+/gps/ang/type {ang}
+
+# 2. Ac-228 (911, 969 keV 주요 기여)
+/gps/source/add 1.0
+/gps/particle ion
+/gps/ion 89 228 0 0
+/gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/pos/confine {confine}
+/gps/ang/type {ang}
+
+# 3. Bi-212 (727 keV 기여)
+/gps/source/add 1.0
+/gps/particle ion
+/gps/ion 83 212 0 0
+/gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/pos/confine {confine}
+/gps/ang/type {ang}
+
+# I/O 파이프라인 설정
+/run/printProgress 1000000
+/analysis/setFileName th232_chain_10M.root
+/run/beamOn 10000000
