@@ -1,47 +1,30 @@
-# macros/vis.mac
-# ==============================================================================
-# Ultra-Low Background NaI Detector Visualization
-# ==============================================================================
-/run/initialize
+# macros/vis_optics.mac
+/control/verbose 0
+/run/verbose 0
+/vis/verbose 0
 
-# 1. 뷰어 열기 및 볼륨 그리기
-/vis/open OGL 800x600-0+0
+/vis/open OGL 800x800-0+0
+/vis/viewer/set/autoRefresh false
+/vis/viewer/set/upVector 0 0 1
+/vis/viewer/set/viewpointThetaPhi 90 0
+
+# 광자 궤적 투시를 위한 Wireframe 모드
 /vis/drawVolume
+/vis/viewer/set/style wireframe
+/vis/viewer/set/hiddenMarker false
 
-# 2. 뷰어 배경 및 시점 설정
-/vis/viewer/set/background white
-/vis/viewer/set/projection perspective 30 deg
-/vis/viewer/set/viewpointThetaPhi 120 40 deg
-/vis/viewer/zoom 1.2
-/vis/viewer/set/style surface
-
-# 3. 궤적 및 텍스트 설정
 /vis/scene/add/trajectories smooth
-/vis/modeling/trajectories/create/drawByParticleID
-/vis/modeling/trajectories/drawByParticleID-0/default/setDrawStepPts true
+/vis/scene/endOfEventAction accumulate
 
-# 감마(초록) 및 전자(빨강) 궤적 색상 세팅
+# ★ 아키텍트 개입: 광자 거동 식별을 위한 색상 매핑 아키텍처
+/vis/modeling/trajectories/create/drawByParticleID
+/vis/modeling/trajectories/drawByParticleID-0/set opticalphoton cyan
 /vis/modeling/trajectories/drawByParticleID-0/set gamma green
 /vis/modeling/trajectories/drawByParticleID-0/set e- red
-# 광자는 어차피 소스 코드에서 프루닝(Pruning)되어 화면에 보이지 않습니다.
+/vis/modeling/trajectories/drawByParticleID-0/set alpha magenta
 
-/vis/scene/add/hits
-/vis/scene/add/date
-/vis/scene/add/text -14 -14 0 cm 12 0 0 RI_Sim_CPNR
+/vis/scene/add/axes 0 0 0 10 cm
+/vis/viewer/set/autoRefresh true
 
-# 화면 업데이트
-/vis/viewer/update
-
-# ==============================================================================
-# 단일 감마선 테스트 사격
-# ==============================================================================
-/gps/source/clear
-/gps/source/add 1
-/gps/particle gamma
-/gps/energy 662 keV
-/gps/pos/type Point
-/gps/pos/centre 0 0 15 cm
-/gps/direction 0 0 -1
-
-# 테스트 샷 발사
-/run/beamOn 1
+# [시스템 경고] 광자 렌더링은 막대한 GUI 부하를 발생시킵니다.
+# 대화형 프롬프트(Session)에서 /run/beamOn 1 ~ 5 이상 실행을 엄격히 금지합니다.
