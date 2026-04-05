@@ -1,7 +1,7 @@
 # macros/full_bkg.mac
 # ==============================================================================
 # RI_Decay: NaI(Tl) Full Environmental Background Simulation
-# Architecture: High-Speed Hybrid Mode (Optical Physics Off, Multi-Isotope)
+# Architecture: High-Speed Hybrid Mode & Secular Equilibrium Ensemble
 # ==============================================================================
 
 # 시스템 I/O 부하 감소를 위한 Verbose 제한
@@ -10,18 +10,17 @@
 /event/verbose 0
 /tracking/verbose 0
 
-# 광학 연산 강제 비활성화 -> EventAction의 O(1) 포아송 역산 로직 유도
+# ★ [아키텍트 패치 1]: 광학 연산 비활성화는 반드시 /run/initialize 이전에 선언
 /process/optical/processActivation Scintillation false
 /process/optical/processActivation Cerenkov false
 
 /run/initialize
 
 # ==============================================================================
-# [ 공통 공간 설정 매크로 변수화 (코드 길이 단축) ]
+# [ 공통 공간 설정 매크로 변수화: 체적(Volume) 및 등방성(Isotropic) 방출 ]
 # ==============================================================================
 /control/alias type Volume
 /control/alias shape Cylinder
-# World 볼륨 크기(1m x 1m x 1m Half-length)에 맞춘 최대 실린더 반경 및 높이
 /control/alias radius 1.0 m
 /control/alias halfz 1.0 m
 /control/alias confine World
@@ -42,9 +41,9 @@
 /gps/ang/type {ang}
 
 # ==============================================================================
-# 2. Uranium (U-238) Chain
+# 2. Uranium (U-238) Chain - 영속 평형 앙상블
 # ==============================================================================
-# Bi-214 (1.76, 2.2 MeV 등 주력 감마)
+# Bi-214 (주요 고에너지 감마)
 /gps/source/add 1.0
 /gps/particle ion
 /gps/ion 83 214 0 0
@@ -56,7 +55,19 @@
 /gps/pos/confine {confine}
 /gps/ang/type {ang}
 
-# Pb-214 (295, 352 keV)
+# ★ Po-214 (164us 지연 붕괴 누락을 방어하는 명시적 독립 선원)
+/gps/source/add 1.0
+/gps/particle ion
+/gps/ion 84 214 0 0
+/gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/pos/confine {confine}
+/gps/ang/type {ang}
+
+# Pb-214 (저에너지 영역)
 /gps/source/add 1.0
 /gps/particle ion
 /gps/ion 82 214 0 0
@@ -81,9 +92,9 @@
 /gps/ang/type {ang}
 
 # ==============================================================================
-# 3. Thorium (Th-232) Chain
+# 3. Thorium (Th-232) Chain - 영속 평형 앙상블
 # ==============================================================================
-# Tl-208 (2.614 MeV, 가장 높은 자연 에너지 피크)
+# ★ Tl-208 (3.05분 지연 붕괴 극복 및 분기비 0.36 적용)
 /gps/source/add 0.36
 /gps/particle ion
 /gps/ion 81 208 0 0
@@ -107,19 +118,7 @@
 /gps/pos/confine {confine}
 /gps/ang/type {ang}
 
-# Pb-212 (239 keV)
-/gps/source/add 1.0
-/gps/particle ion
-/gps/ion 82 212 0 0
-/gps/energy 0 keV
-/gps/pos/type {type}
-/gps/pos/shape {shape}
-/gps/pos/radius {radius}
-/gps/pos/halfz {halfz}
-/gps/pos/confine {confine}
-/gps/ang/type {ang}
-
-# Bi-212 (727 keV)
+# Bi-212 (내부적으로 300ns Po-212 파일업을 자연스럽게 모사)
 /gps/source/add 1.0
 /gps/particle ion
 /gps/ion 83 212 0 0
@@ -131,10 +130,34 @@
 /gps/pos/confine {confine}
 /gps/ang/type {ang}
 
+# Pb-212 (239 keV 주요 기여)
+/gps/source/add 1.0
+/gps/particle ion
+/gps/ion 82 212 0 0
+/gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/pos/confine {confine}
+/gps/ang/type {ang}
+
+# ★ Ra-224 (241 keV 기여 - 영속 평형 보완)
+/gps/source/add 1.0
+/gps/particle ion
+/gps/ion 88 224 0 0
+/gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/pos/confine {confine}
+/gps/ang/type {ang}
+
 # ==============================================================================
 # 4. Artificial Radioactivity (인공 방사능)
 # ==============================================================================
-# Cs-137 (662 keV)
+# Cs-137
 /gps/source/add 1.5
 /gps/particle ion
 /gps/ion 55 137 0 0
@@ -146,7 +169,7 @@
 /gps/pos/confine {confine}
 /gps/ang/type {ang}
 
-# Co-60 (1.17, 1.33 MeV)
+# Co-60
 /gps/source/add 0.5
 /gps/particle ion
 /gps/ion 27 60 0 0
@@ -159,13 +182,12 @@
 /gps/ang/type {ang}
 
 # ==============================================================================
-# 시뮬레이션 실행 및 ROOT 데이터 파이프라인
+# 시뮬레이션 실행
 # ==============================================================================
-# 100만 단위로 진행률 출력 (로그 파일 폭발 방지)
 /run/printProgress 1000000
 
-# ★ 출력 파일명 지정 (이전에 수정한 RunAction.cc 덕분에 정상적으로 덮어쓰기 적용됨)
+# 출력 파일명 지정
 /analysis/setFileName full_bkg_10M.root
 
-# 통계적 요동을 잡기 위한 1,000만 개(10M) 초고속 프로덕션 런
+# 1,000만 개(10M) 연산 수행
 /run/beamOn 10000000

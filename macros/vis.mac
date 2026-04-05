@@ -1,13 +1,22 @@
 # macros/vis.mac
+# ==============================================================================
+# RI_Decay: General Geometry & Tracking Visualization (Alpha-Blended)
+# ==============================================================================
 /control/verbose 0
 /run/verbose 0
 /vis/verbose 0
 
-# 대화형 프롬프트 데이터 격리 (프로덕션 파일 덮어쓰기 방지)
+# 대화형 프롬프트 데이터 격리
 /analysis/setFileName vis_debug.root
 
-# 기하 구조 및 물리 리스트 메모리 할당 (필수)
+# 기하 구조 및 물리 리스트 메모리 할당
 /run/initialize
+
+# ==============================================================================
+# [ 아키텍트 패치: 광학 광자 궤적 저장 명시적 비활성화 ]
+# 메모리 보호를 위해 궤적을 C++ 메모리에서 지워버립니다.
+# ==============================================================================
+/RI_Sim/tracking/storeOpticalTraj false
 
 # Qt/OpenGL 드라이버 초기화
 /vis/open OGL 600x600-0+0
@@ -17,21 +26,50 @@
 /vis/viewer/set/upVector 0 0 1
 /vis/viewer/set/viewpointThetaPhi 70 20
 
-# 볼륨 그리기 및 스타일 (Surface)
+# 볼륨 그리기 및 스타일
 /vis/drawVolume
 /vis/viewer/set/style surface
 /vis/viewer/set/hiddenMarker true
 
-# 궤적 그리기 설정
+# ==============================================================================
+# [ 다중 레이어 투명도(Alpha) 아키텍처 ]
+# ==============================================================================
+/vis/geometry/set/visibility World 0 false
+/vis/geometry/set/colour AlCasing 0 0.8 0.8 0.8 0.2
+/vis/geometry/set/colour ReflectorTop 0 0.9 0.9 0.9 0.2
+/vis/geometry/set/colour ReflectorSide 0 0.9 0.9 0.9 0.2
+/vis/geometry/set/colour NaI 0 0.0 1.0 1.0 0.8
+/vis/geometry/set/colour PMTBody 0 0.6 0.6 0.8 0.3
+/vis/geometry/set/colour Base276L 0 0.3 0.3 0.3 0.8
+
+# ==============================================================================
+# [ 궤적 그리기 및 GUI 메모리 보호 필터 ]
+# ==============================================================================
 /vis/scene/add/trajectories smooth
 /vis/scene/endOfEventAction accumulate
 
-# GUI OOM 방지용 입자 필터 적용 (광자 렌더링 원천 차단)
+# 시각화 필터에서도 광자를 이중으로 차단합니다.
 /vis/filtering/trajectories/create/particleFilter
 /vis/filtering/trajectories/particleFilter-0/add opticalphoton
 /vis/filtering/trajectories/particleFilter-0/invert true
 
-# 모델 스케일 및 갱신
+/vis/modeling/trajectories/create/drawByParticleID
+/vis/modeling/trajectories/drawByParticleID-0/set gamma green
+/vis/modeling/trajectories/drawByParticleID-0/set e- red
+/vis/modeling/trajectories/drawByParticleID-0/set alpha magenta
+
+# ==============================================================================
+# [ 테스트 빔 재조준: 662 keV 수직 타격 ]
+# ==============================================================================
+/gps/particle gamma
+/gps/energy 662 keV
+/gps/position 0.0 0.0 15.0 cm
+/gps/direction 0.0 0.0 -1.0
+
 /vis/scene/add/scale 10 cm
 /vis/scene/add/axes 0 0 0 10 cm
 /vis/viewer/set/autoRefresh true
+
+/control/echo "======================================================="
+/control/echo " [General Vis Ready] Type '/run/beamOn 5' to test tracking."
+/control/echo "======================================================="

@@ -1,4 +1,7 @@
 # macros/vis_optics.mac
+# ==============================================================================
+# RI_Decay: Optical Debugging & Transparent Visualization
+# ==============================================================================
 /control/verbose 0
 /run/verbose 0
 /vis/verbose 0
@@ -9,27 +12,59 @@
 # 기하 구조 및 물리 리스트 메모리 할당 (필수)
 /run/initialize
 
+# ==============================================================================
+# [ 아키텍트 패치: 광학 광자 궤적 저장 활성화 ]
+# C++ TrackingAction의 커스텀 UI 메신저를 호출하여 궤적 저장을 켭니다.
+# ==============================================================================
+/RI_Sim/tracking/storeOpticalTraj true
+
 # Qt/OpenGL 드라이버 초기화
 /vis/open OGL 800x800-0+0
 /vis/viewer/set/autoRefresh false
 /vis/viewer/set/upVector 0 0 1
-/vis/viewer/set/viewpointThetaPhi 90 0
+/vis/viewer/set/viewpointThetaPhi 70 20
 
-# 광자 궤적 투시를 위한 Wireframe 모드
+# 볼륨 그리기 및 스타일
 /vis/drawVolume
-/vis/viewer/set/style wireframe
-/vis/viewer/set/hiddenMarker false
+/vis/viewer/set/style surface
+/vis/viewer/set/hiddenMarker true
 
-# 궤적 그리기 설정
+# ==============================================================================
+# [ 다중 레이어 투명도(Alpha) 아키텍처 ]
+# ==============================================================================
+/vis/geometry/set/visibility World 0 false
+/vis/geometry/set/colour AlCasing 0 0.8 0.8 0.8 0.2
+/vis/geometry/set/colour ReflectorTop 0 0.9 0.9 0.9 0.2
+/vis/geometry/set/colour ReflectorSide 0 0.9 0.9 0.9 0.2
+/vis/geometry/set/colour NaI 0 0.0 1.0 1.0 0.8
+/vis/geometry/set/colour PMTBody 0 0.6 0.6 0.8 0.3
+/vis/geometry/set/colour Base276L 0 0.3 0.3 0.3 0.8
+
+# ==============================================================================
+# [ 입자 궤적 및 색상 매핑 ]
+# ==============================================================================
 /vis/scene/add/trajectories smooth
 /vis/scene/endOfEventAction accumulate
 
-# 광자 거동 식별을 위한 색상 매핑 아키텍처
 /vis/modeling/trajectories/create/drawByParticleID
 /vis/modeling/trajectories/drawByParticleID-0/set opticalphoton cyan
 /vis/modeling/trajectories/drawByParticleID-0/set gamma green
 /vis/modeling/trajectories/drawByParticleID-0/set e- red
 /vis/modeling/trajectories/drawByParticleID-0/set alpha magenta
 
+# ==============================================================================
+# [ ★ 테스트 빔 재조준: 100 keV 타격 (투과력 확보 및 메모리 보호) ]
+# 1mm 알루미늄 하우징을 투과하면서도 광학 광자 생성량을 약 3,800개로 제한하여 
+# X11 포워딩 GUI 화면의 멈춤 현상을 방지합니다.
+# ==============================================================================
+/gps/particle gamma
+/gps/energy 100 keV
+/gps/position 0.0 0.0 15.0 cm
+/gps/direction 0.0 0.0 -1.0
+
 /vis/scene/add/axes 0 0 0 10 cm
 /vis/viewer/set/autoRefresh true
+
+/control/echo "======================================================="
+/control/echo " [Optical Vis Ready] Type '/run/beamOn 1' to shoot a 100 keV Gamma."
+/control/echo "======================================================="

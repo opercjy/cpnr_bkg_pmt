@@ -1,29 +1,24 @@
+# macros/shrinkwrap_bkg.mac
 # ==============================================================================
 # RENO Far Site - Shrink-wrap Background Simulation
 # Hardware: Alpha Spectra 905 (2"x2") + 207 Base
 # Optimization: Surface Biasing (Cosine) & Optical Physics Disabled
 # ==============================================================================
-/run/initialize
 
 /control/verbose 0
 /run/verbose 0
 /event/verbose 0
 /tracking/verbose 0
 
-# ★ [극한 최적화 1]: 광학 광자 폭발(Deadlock) 방지를 위한 광학 물리 비활성화
-# 대통계량(1,000만 개) 모사 시 연산 속도를 수만 배 끌어올립니다.
-#/process/optical/processActivation Scintillation false
-#/process/optical/processActivation Cerenkov false
+/process/optical/processActivation Scintillation false
+/process/optical/processActivation Cerenkov false
 
-# [ 전문가 최적화: 슈링크랩(Shrink-wrap) 공간 설정 ]
+/run/initialize
+
 /control/alias type Surface
 /control/alias shape Cylinder
-# 2"x2" 검출기 하우징(반경 약 2.8cm, 절반 높이 약 4.5cm)보다 살짝 크게 설정
 /control/alias radius 3.0 cm
 /control/alias halfz 5.0 cm
-
-# ★ [극한 최적화 2]: 입체각 바이어싱(Cosine Biasing)
-# 표면에서 발생한 입자가 바깥 허공으로 날아가지 않고, 무조건 검출기 중심부로 집중되게 합니다.
 /control/alias ang cos
 
 # ==============================================================================
@@ -46,6 +41,17 @@
 /gps/source/add 1.0
 /gps/particle ion
 /gps/ion 83 214 0 0
+/gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/ang/type {ang}
+
+# Po-214
+/gps/source/add 1.0
+/gps/particle ion
+/gps/ion 84 214 0 0
 /gps/energy 0 keV
 /gps/pos/type {type}
 /gps/pos/shape {shape}
@@ -122,6 +128,17 @@
 /gps/pos/halfz {halfz}
 /gps/ang/type {ang}
 
+# ★ Ra-224 (241 keV 기여 - 영속 평형 보완)
+/gps/source/add 1.0
+/gps/particle ion
+/gps/ion 88 224 0 0
+/gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/ang/type {ang}
+
 # ==============================================================================
 # 4. Artificial Radioactivity (인공 방사능)
 # ==============================================================================
@@ -150,11 +167,10 @@
 # ==============================================================================
 # 시뮬레이션 실행
 # ==============================================================================
-# 진행상황을 10만 번 단위로 모니터링
-/run/printProgress 10000
+/run/printProgress 1000000
 
 # 파일명 지정
-/analysis/setFileName shrinkwrap_bkg_1M.root
+/analysis/setFileName shrinkwrap_bkg_10M.root
 
-# 1,00만 개(1M) 연산 수행
-/run/beamOn 1000000
+# 1,000만 개(10M) 연산 수행
+/run/beamOn 10000000
