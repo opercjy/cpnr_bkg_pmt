@@ -1,7 +1,10 @@
 # macros/full_bkg.mac
 # ==============================================================================
 # RI_Decay: NaI(Tl) Full Environmental Background Simulation
-# Architecture: High-Speed Hybrid Mode & Secular Equilibrium Ensemble
+# Architecture: 
+#   1. RENO Far-Site ICP-MS Benchmark (B_ICP) Source Intensities
+#   2. Geometric Importance Sampling (R=25cm, HalfZ=25cm)
+#   3. Full Optical Physics ON + Trajectory Storage OFF
 # ==============================================================================
 
 # 시스템 I/O 부하 감소를 위한 Verbose 제한
@@ -10,29 +13,33 @@
 /event/verbose 0
 /tracking/verbose 0
 
+# 기하 구조 및 물리 리스트 메모리 할당
 /run/initialize
 
 # ==============================================================================
-# [ 아키텍트 패치: 광학 광자 궤적 저장 명시적 비활성화 ]
-# 메모리 보호를 위해 궤적을 C++ 메모리에서 지워버립니다.
+# [ 아키텍트 패치 1: 광학 광자 궤적 저장 명시적 비활성화 ]
+# 메모리 붕괴(OOM) 방지를 위해 물리적 빛 이동은 연산하되 RAM 궤적 저장만 차단합니다.
 # ==============================================================================
 /RI_Sim/tracking/storeOpticalTraj false
 
 
 # ==============================================================================
-# [ 공통 공간 설정 매크로 변수화: 체적(Volume) 및 등방성(Isotropic) 방출 ]
+# [ 아키텍트 패치 2: 기하학적 중요도 샘플링 (Geometric Biasing) ]
+# 검출기 체적(약 10cm 내외)을 아슬아슬하게 덮는 25cm 반경으로 발생 체적을 대폭 축소하여,
+# 허공으로 날아가는 입자를 배제하고 전산 연산 효율을 수백 배 극대화합니다.
 # ==============================================================================
 /control/alias type Volume
 /control/alias shape Cylinder
-/control/alias radius 1.0 m
-/control/alias halfz 1.0 m
+/control/alias radius 25.0 cm
+/control/alias halfz 25.0 cm
 /control/alias confine World
 /control/alias ang iso
 
+
 # ==============================================================================
-# 1. 자연 방사능: K-40 (1.46 MeV)
+# 1. 자연 방사능: K-40 (지배적인 단일 선원 - 논문 B_ICP 기준 636.7 Bq/kg)
 # ==============================================================================
-/gps/source/intensity 10.0
+/gps/source/intensity 636.7
 /gps/particle ion
 /gps/ion 19 40 0 0
 /gps/energy 0 keV
@@ -43,11 +50,12 @@
 /gps/pos/confine {confine}
 /gps/ang/type {ang}
 
+
 # ==============================================================================
-# 2. Uranium (U-238) Chain - 영속 평형 앙상블
+# 2. Uranium (U-238) Chain - 영속 평형 앙상블 (논문 B_ICP 기준 25.9 Bq/kg)
 # ==============================================================================
-# Bi-214 (주요 고에너지 감마)
-/gps/source/add 1.0
+# Bi-214
+/gps/source/add 25.9
 /gps/particle ion
 /gps/ion 83 214 0 0
 /gps/energy 0 keV
@@ -58,8 +66,8 @@
 /gps/pos/confine {confine}
 /gps/ang/type {ang}
 
-# ★ Po-214 (164us 지연 붕괴 누락을 방어하는 명시적 독립 선원)
-/gps/source/add 1.0
+# Po-214
+/gps/source/add 25.9
 /gps/particle ion
 /gps/ion 84 214 0 0
 /gps/energy 0 keV
@@ -70,8 +78,8 @@
 /gps/pos/confine {confine}
 /gps/ang/type {ang}
 
-# Pb-214 (저에너지 영역)
-/gps/source/add 1.0
+# Pb-214
+/gps/source/add 25.9
 /gps/particle ion
 /gps/ion 82 214 0 0
 /gps/energy 0 keV
@@ -82,8 +90,8 @@
 /gps/pos/confine {confine}
 /gps/ang/type {ang}
 
-# Pa-234m (1.001 MeV 등)
-/gps/source/add 1.0
+# Pa-234m
+/gps/source/add 25.9
 /gps/particle ion
 /gps/ion 91 234 0 0 
 /gps/energy 0 keV
@@ -94,11 +102,12 @@
 /gps/pos/confine {confine}
 /gps/ang/type {ang}
 
+
 # ==============================================================================
-# 3. Thorium (Th-232) Chain - 영속 평형 앙상블
+# 3. Thorium (Th-232) Chain - 영속 평형 앙상블 (논문 B_ICP 기준 29.6 Bq/kg)
 # ==============================================================================
-# ★ Tl-208 (3.05분 지연 붕괴 극복 및 분기비 0.36 적용)
-/gps/source/add 0.36
+# ★ Tl-208 (29.6 * 분기비 0.3594 = 약 10.64 적용)
+/gps/source/add 10.64
 /gps/particle ion
 /gps/ion 81 208 0 0
 /gps/energy 0 keV
@@ -109,8 +118,8 @@
 /gps/pos/confine {confine}
 /gps/ang/type {ang}
 
-# Ac-228 (911, 969 keV)
-/gps/source/add 1.0
+# Ac-228
+/gps/source/add 29.6
 /gps/particle ion
 /gps/ion 89 228 0 0
 /gps/energy 0 keV
@@ -121,8 +130,8 @@
 /gps/pos/confine {confine}
 /gps/ang/type {ang}
 
-# Bi-212 (내부적으로 300ns Po-212 파일업을 자연스럽게 모사)
-/gps/source/add 1.0
+# Bi-212
+/gps/source/add 29.6
 /gps/particle ion
 /gps/ion 83 212 0 0
 /gps/energy 0 keV
@@ -133,8 +142,8 @@
 /gps/pos/confine {confine}
 /gps/ang/type {ang}
 
-# Pb-212 (239 keV 주요 기여)
-/gps/source/add 1.0
+# Pb-212
+/gps/source/add 29.6
 /gps/particle ion
 /gps/ion 82 212 0 0
 /gps/energy 0 keV
@@ -145,8 +154,8 @@
 /gps/pos/confine {confine}
 /gps/ang/type {ang}
 
-# ★ Ra-224 (241 keV 기여 - 영속 평형 보완)
-/gps/source/add 1.0
+# Ra-224
+/gps/source/add 29.6
 /gps/particle ion
 /gps/ion 88 224 0 0
 /gps/energy 0 keV
@@ -157,8 +166,9 @@
 /gps/pos/confine {confine}
 /gps/ang/type {ang}
 
+
 # ==============================================================================
-# 4. Artificial Radioactivity (인공 방사능)
+# 4. Artificial Radioactivity (인공 방사능: 흔적 수준 유지)
 # ==============================================================================
 # Cs-137
 /gps/source/add 1.5
@@ -184,13 +194,14 @@
 /gps/pos/confine {confine}
 /gps/ang/type {ang}
 
+
 # ==============================================================================
-# 시뮬레이션 실행
+# 시뮬레이션 실행 및 ROOT 데이터 파이프라인
 # ==============================================================================
 /run/printProgress 1000000
 
 # 출력 파일명 지정
 /analysis/setFileName full_bkg_10M.root
 
-# 1,000만 개(10M) 연산 수행
+# 1,000만 개(10M) 연산 수행 (필요 시 100M 등으로 자유롭게 조절)
 /run/beamOn 10000000
