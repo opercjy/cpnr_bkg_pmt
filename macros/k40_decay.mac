@@ -1,7 +1,8 @@
-# macros/k40_decay.mac
+# macros/full_bkg.mac
 # ==============================================================================
-# RI_Decay: K-40 Natural Radioactivity (Geometric Biasing Applied)
+# RI_Decay: NaI(Tl) Full Environmental Background Simulation
 # ==============================================================================
+
 /control/verbose 0
 /run/verbose 0
 /event/verbose 0
@@ -9,13 +10,14 @@
 
 /run/initialize
 
-# 광학 궤적 저장 비활성화 (메모리 보호)
-/RI_Sim/tracking/storeOpticalTraj false
 # ==============================================================================
-# Geant4 11.2+ 초장반감기 붕괴 락(Lock) 해제
+#  Geant4 11.2+ 초장반감기 붕괴 락(Lock) 해제
 # 기본 1년으로 제한된 붕괴 임계값을 우주 나이 이상으로 확장하여 K-40을 강제 붕괴시킵니다.
 # ==============================================================================
 /process/had/rdm/thresholdForVeryLongDecayTime 1.0e+60 year
+
+# 광학 궤적 저장 비활성화 (메모리 보호)
+/RI_Sim/tracking/storeOpticalTraj false
 
 # ==============================================================================
 # 기하학적 중요도 샘플링 (R=25cm 축소로 외부 환경 모사)
@@ -29,10 +31,9 @@
 
 # ==============================================================================
 # 1. 자연 방사능: K-40 
-# 단일 선원이므로 intensity는 1.0으로 고정합니다.
 # ==============================================================================
-# [옵션 1: 순수 이온 붕괴 (활성화됨)] - 자연 상태 100% 동일 모사
-/gps/source/intensity 1.0
+# [옵션 1: 순수 이온 붕괴 (활성화됨)] - 자연 상태 100% 동일 (Intensity 636.7 Bq/kg)
+/gps/source/intensity 636.7
 /gps/particle ion
 /gps/ion 19 40 0 0
 /gps/energy 0 keV
@@ -43,8 +44,9 @@
 /gps/pos/confine {confine}
 /gps/ang/type {ang}
 
-# [옵션 2: 감마선 직접 주입 (주석 처리됨)] - 베타선 연산 생략으로 속도 극한 최적화
-# /gps/source/intensity 1.0
+# [옵션 2: 감마선 직접 주입 (주석 처리됨)] - 베타선 연산 생략으로 속도 최적화
+# Intensity = 636.7 * 0.1072 (EC Branching Ratio) = 68.25
+# /gps/source/intensity 68.25
 # /gps/particle gamma
 # /gps/energy 1.4608 MeV
 # /gps/pos/type {type}
@@ -54,7 +56,140 @@
 # /gps/pos/confine {confine}
 # /gps/ang/type {ang}
 
-# I/O 파이프라인 설정
+# ==============================================================================
+# 2. Uranium (U-238) Chain (B_ICP 기준 25.9 Bq/kg)
+# ==============================================================================
+/gps/source/add 25.9
+/gps/particle ion
+/gps/ion 83 214 0 0
+/gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/pos/confine {confine}
+/gps/ang/type {ang}
+
+/gps/source/add 25.9
+/gps/particle ion
+/gps/ion 84 214 0 0
+/gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/pos/confine {confine}
+/gps/ang/type {ang}
+
+/gps/source/add 25.9
+/gps/particle ion
+/gps/ion 82 214 0 0
+/gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/pos/confine {confine}
+/gps/ang/type {ang}
+
+/gps/source/add 25.9
+/gps/particle ion
+/gps/ion 91 234 0 0 
+/gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/pos/confine {confine}
+/gps/ang/type {ang}
+
+# ==============================================================================
+# 3. Thorium (Th-232) Chain (B_ICP 기준 29.6 Bq/kg)
+# ==============================================================================
+# Tl-208 (29.6 * 분기비 0.3594 = 10.64)
+/gps/source/add 10.64
+/gps/particle ion
+/gps/ion 81 208 0 0
+/gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/pos/confine {confine}
+/gps/ang/type {ang}
+
+/gps/source/add 29.6
+/gps/particle ion
+/gps/ion 89 228 0 0
+/gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/pos/confine {confine}
+/gps/ang/type {ang}
+
+/gps/source/add 29.6
+/gps/particle ion
+/gps/ion 83 212 0 0
+/gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/pos/confine {confine}
+/gps/ang/type {ang}
+
+/gps/source/add 29.6
+/gps/particle ion
+/gps/ion 82 212 0 0
+/gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/pos/confine {confine}
+/gps/ang/type {ang}
+
+/gps/source/add 29.6
+/gps/particle ion
+/gps/ion 88 224 0 0
+/gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/pos/confine {confine}
+/gps/ang/type {ang}
+
+# ==============================================================================
+# 4. Artificial Radioactivity (미량)
+# ==============================================================================
+/gps/source/add 1.5
+/gps/particle ion
+/gps/ion 55 137 0 0
+/gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/pos/confine {confine}
+/gps/ang/type {ang}
+
+/gps/source/add 0.5
+/gps/particle ion
+/gps/ion 27 60 0 0
+/gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/pos/confine {confine}
+/gps/ang/type {ang}
+
+# ==============================================================================
+# Execution
+# ==============================================================================
 /run/printProgress 1000000
-/analysis/setFileName k40_decay_10M.root
+/analysis/setFileName full_bkg_10M.root
 /run/beamOn 10000000
