@@ -1,6 +1,6 @@
-# macros/u238_chain.mac
+# macros/th232_chain.mac
 # ==============================================================================
-# RI_Decay: U-238 Decay Chain (Geometric Biasing Applied)
+# RI_Decay: Th-232 Decay Chain (Geometric Biasing Applied)
 # ==============================================================================
 /control/verbose 0
 /run/verbose 0
@@ -28,12 +28,12 @@
 /control/alias ang iso
 
 # ==============================================================================
-# U-238 Chain (영속 평형을 위해 각 핵종의 intensity를 1.0으로 동일하게 부여)
+# Th-232 Chain
 # ==============================================================================
-# 1. Bi-214 (주요 고에너지 감마 선원)
-/gps/source/intensity 1.0
+# 1. Tl-208 (★ 3.05분 지연 붕괴 극복 및 0.36 분기비 적용)
+/gps/source/intensity 0.36
 /gps/particle ion
-/gps/ion 83 214 0 0
+/gps/ion 81 208 0 0
 /gps/energy 0 keV
 /gps/pos/type {type}
 /gps/pos/shape {shape}
@@ -42,10 +42,10 @@
 /gps/pos/confine {confine}
 /gps/ang/type {ang}
 
-# 2. Po-214 (164us 지연 붕괴 누락을 방어하는 명시적 독립 선원)
+# 2. Ac-228 (911, 969 keV 주요 기여)
 /gps/source/add 1.0
 /gps/particle ion
-/gps/ion 84 214 0 0
+/gps/ion 89 228 0 0
 /gps/energy 0 keV
 /gps/pos/type {type}
 /gps/pos/shape {shape}
@@ -54,10 +54,10 @@
 /gps/pos/confine {confine}
 /gps/ang/type {ang}
 
-# 3. Pb-214 (저에너지 영역 기여)
+# 3. Bi-212 (727 keV 기여 + 내부적으로 300ns Po-212 Pile-up 자연 모사)
 /gps/source/add 1.0
 /gps/particle ion
-/gps/ion 82 214 0 0
+/gps/ion 83 212 0 0
 /gps/energy 0 keV
 /gps/pos/type {type}
 /gps/pos/shape {shape}
@@ -66,10 +66,22 @@
 /gps/pos/confine {confine}
 /gps/ang/type {ang}
 
-# 4. Pa-234m (1.001 MeV 기여)
+# 4. Pb-212 (239 keV 주요 기여 - 영속 평형 보완)
 /gps/source/add 1.0
 /gps/particle ion
-/gps/ion 91 234 0 0 
+/gps/ion 82 212 0 0
+/gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/pos/confine {confine}
+/gps/ang/type {ang}
+
+# 5. Ra-224 (241 keV 기여 - 영속 평형 보완)
+/gps/source/add 1.0
+/gps/particle ion
+/gps/ion 88 224 0 0
 /gps/energy 0 keV
 /gps/pos/type {type}
 /gps/pos/shape {shape}
@@ -82,5 +94,5 @@
 # 시뮬레이션 실행
 # ==============================================================================
 /run/printProgress 1000000
-/analysis/setFileName u238_chain_10M.root
+/analysis/setFileName th232_chain_10M.root
 /run/beamOn 10000000
