@@ -1,6 +1,6 @@
 # macros/k40_decay.mac
 # ==============================================================================
-# RI_Decay: K-40 Natural Radioactivity (Hybrid Mode)
+# RI_Decay: K-40 Natural Radioactivity (Geometric Biasing Applied)
 # ==============================================================================
 /control/verbose 0
 /run/verbose 0
@@ -9,24 +9,50 @@
 
 /run/initialize
 
-# ==============================================================================
-# [ 아키텍트 패치: 광학 광자 궤적 저장 명시적 비활성화 ]
-# 메모리 보호를 위해 궤적을 C++ 메모리에서 지워버립니다.
-# ==============================================================================
+# 광학 궤적 저장 비활성화 (메모리 보호)
 /RI_Sim/tracking/storeOpticalTraj false
+# ==============================================================================
+# Geant4 11.2+ 초장반감기 붕괴 락(Lock) 해제
+# 기본 1년으로 제한된 붕괴 임계값을 우주 나이 이상으로 확장하여 K-40을 강제 붕괴시킵니다.
+# ==============================================================================
+/process/had/rdm/thresholdForVeryLongDecayTime 1.0e+60 year
 
+# ==============================================================================
+# 기하학적 중요도 샘플링 (R=25cm 축소로 외부 환경 모사)
+# ==============================================================================
+/control/alias type Volume
+/control/alias shape Cylinder
+/control/alias radius 25.0 cm
+/control/alias halfz 25.0 cm
+/control/alias confine World
+/control/alias ang iso
 
-# GPS 선원 설정: World 체적 전체 분포
+# ==============================================================================
+# 1. 자연 방사능: K-40 
+# 단일 선원이므로 intensity는 1.0으로 고정합니다.
+# ==============================================================================
+# [옵션 1: 순수 이온 붕괴 (활성화됨)] - 자연 상태 100% 동일 모사
+/gps/source/intensity 1.0
 /gps/particle ion
 /gps/ion 19 40 0 0
 /gps/energy 0 keV
+/gps/pos/type {type}
+/gps/pos/shape {shape}
+/gps/pos/radius {radius}
+/gps/pos/halfz {halfz}
+/gps/pos/confine {confine}
+/gps/ang/type {ang}
 
-/gps/pos/type Volume
-/gps/pos/shape Cylinder
-/gps/pos/radius 1.0 m
-/gps/pos/halfz 1.0 m
-/gps/pos/confine World
-/gps/ang/type iso
+# [옵션 2: 감마선 직접 주입 (주석 처리됨)] - 베타선 연산 생략으로 속도 극한 최적화
+# /gps/source/intensity 1.0
+# /gps/particle gamma
+# /gps/energy 1.4608 MeV
+# /gps/pos/type {type}
+# /gps/pos/shape {shape}
+# /gps/pos/radius {radius}
+# /gps/pos/halfz {halfz}
+# /gps/pos/confine {confine}
+# /gps/ang/type {ang}
 
 # I/O 파이프라인 설정
 /run/printProgress 1000000
